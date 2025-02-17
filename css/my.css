@@ -1,0 +1,12 @@
+body {
+    background-color: #fdc96c;
+    color: rgb(14, 14, 14);
+
+}
+
+.flex-container {
+ margin-top: 50px;
+ display: flex;
+ justify-content: space-evenly;
+ align-items: center;
+}
