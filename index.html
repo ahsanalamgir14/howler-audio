@@ -1,45 +1,58 @@
 <!DOCTYPE html>
 <html lang="en" class="no-js">
+
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Howler.js seamless loop</title>
-    
-
-
-<!-- External CSS -->
-<link rel="stylesheet" href="css/my.css">
-<!-- please, your code here -->
-<link rel="stylesheet" href="css/fiverr.css">
-
+	<!-- External CSS -->
+	<link rel="stylesheet" href="css/my.css">
+	<!-- please, your code here -->
+	<link rel="stylesheet" href="css/styles.css">
 </head>
 
-
 <body>
+	<div class="flex-container">
+		<div class="audio-controls">
 
-	<audio id="sound1" src="nogap_sounds/white-noise.ogg"></audio>
-	<audio id="sound2" src="nogap_sounds/brown-noise.ogg"></audio>
-	<audio id="sound3" src="nogap_sounds/pink-noise.ogg"></audio>	
+			<!-- Play / Pause Button -->
+			<img id="playBtn1" class="playButton" src="images/play.png" alt="play-stop button">
 
+			<!-- Volume Slider -->
+			<input type="range" id="volumeSlider1" min="0" max="1" step="0.1" value="1">
+		</div>
+	</div>
 
+	<script type="text/javascript" src="js/howler-v2.2.4.min.js"></script>
+	<script>
+		// Create Howl instance
+		const sound = new Howl({
+			src: ['nogap_sounds/white-noise.ogg'],
+			loop: true, // Enable seamless looping
+			html5: true // Ensures it works on mobile
+		});
 
+		// Get button reference
+		const playPauseBtn = document.getElementById('playBtn1');
+		const volumeSlider = document.getElementById('volumeSlider1');
 
-<div class="flex-container">
-   <img src="images/play.png" alt="play-stop button">
-   <img src="images/play.png" alt="play-stop button">
-   <img src="images/play.png" alt="play-stop button">
-</div>
+		// Toggle play/pause
+		playPauseBtn.addEventListener('click', function () {
+			if (sound.playing()) {
+				sound.pause();
+				playPauseBtn.src = 'images/play.png'; // Change to play icon
+			} else {
+				sound.play();
+				playPauseBtn.src = 'images/stop.png'; // Change to pause icon
+			}
+		});
 
-
-
-
-
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
-
-<script type="text/javascript" src="js/fiverr.js"></script>
-
+		// Adjust volume based on slider
+		volumeSlider.addEventListener('input', function () {
+			sound.volume(volumeSlider.value);
+		});
+	</script>
 </body>
+
 </html>

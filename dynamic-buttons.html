@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Howler.js Dynamic Buttons</title>
+
+	<!-- External CSS -->
+	<link rel="stylesheet" href="css/my.css">
+	<link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+	<div id="audioContainer" class="flex-container"></div> <!-- Dynamic Buttons Go Here -->
+
+	<!-- Load Howler.js -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+
+	<script>
+		// Array of audio tracks (Modify this to change tracks)
+		const audioFiles = [
+			{ src: 'nogap_sounds/white-noise.ogg', name: 'White Noise' },
+			{ src: 'nogap_sounds/pink-noise.ogg', name: 'Rain Sounds' },
+			{ src: 'nogap_sounds/brown-noise.ogg', name: 'Ocean Waves' }
+		];
+
+		// Reference to the container
+		const audioContainer = document.getElementById('audioContainer');
+
+		// Store Howl instances
+		const sounds = [];
+
+		// Dynamically create audio controls
+		audioFiles.forEach((track, index) => {
+			// Create a new Howl instance
+			const sound = new Howl({
+				src: [track.src],
+				loop: true, // Loop playback
+				html5: true // Ensure mobile compatibility
+			});
+
+			// Store sound object
+			sounds.push(sound);
+
+			// Create HTML elements
+			const audioDiv = document.createElement('div');
+			audioDiv.classList.add('audio-controls');
+
+			// Play button
+			const playButton = document.createElement('img');
+			playButton.src = 'images/play.png';
+			playButton.alt = 'Play/Pause';
+			playButton.style.cursor = 'pointer';
+			playButton.style.width = '50px';
+			playButton.dataset.index = index; // Store index for reference
+			playButton.addEventListener('click', function () {
+				const sound = sounds[this.dataset.index];
+				if (sound.playing()) {
+					sound.pause();
+					this.src = 'images/play.png'; // Change to play icon
+				} else {
+					sound.play();
+					this.src = 'images/stop.png'; // Change to pause icon
+				}
+			});
+
+			// Volume slider
+			const volumeSlider = document.createElement('input');
+			volumeSlider.type = 'range';
+			volumeSlider.min = '0';
+			volumeSlider.max = '1';
+			volumeSlider.step = '0.1';
+			volumeSlider.value = '1';
+			volumeSlider.dataset.index = index; // Store index for reference
+			volumeSlider.addEventListener('input', function () {
+				const sound = sounds[this.dataset.index];
+				sound.volume(this.value);
+			});
+
+			// Track name label
+			const trackLabel = document.createElement('p');
+			trackLabel.textContent = track.name;
+
+			// Append elements
+			audioDiv.appendChild(trackLabel);
+			audioDiv.appendChild(playButton);
+			audioDiv.appendChild(volumeSlider);
+			audioContainer.appendChild(audioDiv);
+		});
+
+	</script>
+
+</body>
+
+</html>

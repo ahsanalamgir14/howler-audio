@@ -1,0 +1,12 @@
+.audio-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+}
+
+.playButton {
+    cursor: pointer;
+    width: auto;
+}
