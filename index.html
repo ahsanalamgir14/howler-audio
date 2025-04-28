@@ -15,44 +15,42 @@
 <body>
 	<div class="flex-container">
 		<div class="audio-controls">
+			<p>Bullet</p>			
+			<img id="playBtn1" class="playButton" src="images/play1.png" alt="play-stop btn"> <!-- Play / Pause Button -->			
+			<input type="range" id="volumeSlider1" min="0" max="1" step="0.1" value="1"> <!-- Volume Slider -->
+		</div>
 
-			<!-- Play / Pause Button -->
-			<img id="playBtn1" class="playButton" src="images/play.png" alt="play-stop button">
+		<div class="audio-controls">
+			<p>Charge</p>
+			<img id="playBtn2" class="playButton" src="images/play2.png" alt="play-stop btn">
+			<input type="range" id="volumeSlider2" min="0" max="1" step="0.1" value="1">
+		</div>
 
-			<!-- Volume Slider -->
-			<input type="range" id="volumeSlider1" min="0" max="1" step="0.1" value="1">
+		<div class="audio-controls">
+			<p>Seemless noise</p>
+			<img id="playBtn3" class="playButton" src="images/play3.png" alt="play-stop btn">
+			<input type="range" id="volumeSlider3" min="0" max="1" step="0.1" value="1">
 		</div>
 	</div>
 
+
+<div class="stopbutton">Stop All Sounds</div>	
+
+
+
+
+
+
+
+
+
+
+
 	<script type="text/javascript" src="js/howler-v2.2.4.min.js"></script>
-	<script>
-		// Create Howl instance
-		const sound = new Howl({
-			src: ['nogap_sounds/white-noise.ogg'],
-			loop: true, // Enable seamless looping
-			html5: true // Ensures it works on mobile
-		});
 
-		// Get button reference
-		const playPauseBtn = document.getElementById('playBtn1');
-		const volumeSlider = document.getElementById('volumeSlider1');
+    <!-- All Howl instances grouped here please -->
+	<script type="text/javascript" src="js/howler-instances.js"></script>
 
-		// Toggle play/pause
-		playPauseBtn.addEventListener('click', function () {
-			if (sound.playing()) {
-				sound.pause();
-				playPauseBtn.src = 'images/play.png'; // Change to play icon
-			} else {
-				sound.play();
-				playPauseBtn.src = 'images/stop.png'; // Change to pause icon
-			}
-		});
-
-		// Adjust volume based on slider
-		volumeSlider.addEventListener('input', function () {
-			sound.volume(volumeSlider.value);
-		});
-	</script>
 </body>
 
 </html>

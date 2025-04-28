@@ -1,0 +1,18 @@
+1. "Stop All" button with sound fade out.
+2. For the Howl instance N3, add fade in/out for play/stop.
+3. Volume slider, it must be visible on play only:
+
+For the slider:
+---------------
+width: 180px;
+height: 3px;
+color: #fde56c; // in ALL browsers
+
+For its thumb:
+--------------
+background: url("../images/thumb.svg") no-repeat center;
+width: 30px;
+hight: 30px;
+
+
+Thank you.

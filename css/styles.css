@@ -4,9 +4,13 @@
     align-items: center;
     vertical-align: middle;
     justify-content: center;
+
+    /* margin: 0 80px 0 80px; */
+    flex: 0 0 33.3333%;
 }
 
 .playButton {
     cursor: pointer;
     width: auto;
+    padding: 5px 0 15px 0;
 }

@@ -1,12 +1,28 @@
 body {
-    background-color: #fdc96c;
-    color: rgb(14, 14, 14);
+    background-color: #000000;
+    color: #fde56c;
 
 }
 
 .flex-container {
- margin-top: 50px;
+ margin: 50px auto 0 auto;
  display: flex;
- justify-content: space-evenly;
+ justify-content: center;
  align-items: center;
+ flex-wrap: wrap;
+ width: 100%;
 }
+
+.stopbutton {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    min-width: 100px;
+    height: 20px;
+    color: #fff;
+    text-align: center;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 2px solid #fde56c;
+  }
+
