@@ -2,14 +2,6 @@
 
 const fadeDuration = 1000; // Duration for fade in/out in milliseconds
 const sound3Duration = 2000; // Duration for sound3 in milliseconds
-
-// -------------------------
-const playPauseBtn1 = document.getElementById("playBtn1");
-const volumeSlider1 = document.getElementById("volumeSlider1");
-
-const playPauseBtn2 = document.getElementById("playBtn2");
-const volumeSlider2 = document.getElementById("volumeSlider2");
-
 // -------------------------
 // Sound 1
 // -------------------------
@@ -21,9 +13,11 @@ const sound1 = new Howl({
   onend: function () {
     playPauseBtn1.src = "images/play1.png";
     sound1Id = null;
-    volumeSlider1.classList.add("hidden");
   }
 });
+
+const playPauseBtn1 = document.getElementById("playBtn1");
+const volumeSlider1 = document.getElementById("volumeSlider1");
 
 playPauseBtn1.addEventListener("click", function () {
   if (sound1.playing()) {
@@ -66,9 +60,11 @@ const sound2 = new Howl({
   onend: function () {
     playPauseBtn2.src = "images/play2.png";
     sound2Id = null;
-    volumeSlider2.classList.add("hidden");
   }
 });
+
+const playPauseBtn2 = document.getElementById("playBtn2");
+const volumeSlider2 = document.getElementById("volumeSlider2");
 
 playPauseBtn2.addEventListener("click", function () {
   if (sound2.playing()) {
@@ -99,6 +95,47 @@ volumeSlider2.addEventListener("input", function () {
   }
 });
 
+
+// -------------------------
+// Sound 3 (Looping)
+// -------------------------
+// let sound3Id = null;
+// const sound3 = new Howl({
+//   src: ["nogap_sounds/sound3.ogg"],
+//   loop: true,
+//   // Removed `html5: true` for seamless looping
+// });
+
+// const playPauseBtn3 = document.getElementById("playBtn3");
+// const volumeSlider3 = document.getElementById("volumeSlider3");
+
+// playPauseBtn3.addEventListener("click", function () {
+//   if (sound3.playing()) {
+//     if (sound3Id !== null) {
+//       sound3.fade(sound3.volume(sound3Id), 0, fadeDuration, sound3Id);
+//       setTimeout(() => {
+//         sound3.stop(sound3Id);
+//         sound3.volume(volumeSlider3.value, sound3Id);
+//         playPauseBtn3.src = "images/play3.png";
+//         sound3Id = null;
+//       }, fadeDuration);
+//     }
+//   } else {
+//     sound3Id = sound3.play();
+//     sound3.volume(0, sound3Id);
+//     sound3.once("play", () => {
+//       sound3.fade(0, volumeSlider3.value, fadeDuration, sound3Id);
+//     });
+//     playPauseBtn3.src = "images/stop-inf.png";
+//   }
+// });
+
+// volumeSlider3.addEventListener("input", function () {
+//   if (sound3Id !== null) {
+//     sound3.volume(volumeSlider3.value, sound3Id);
+//   }
+// });
+
 const loop = new SeamlessLoop();
 loop.addUri("nogap_sounds/sound3.ogg", sound3Duration, "sound3");
 
@@ -108,52 +145,15 @@ let isPlaying = false;
 
 playPauseBtn3.addEventListener("click", function () {
   if (!isPlaying) {
-    // Start loop first before accessing volume
     loop.start("sound3");
+    playPauseBtn3.src = "images/stop-inf.png";
+    volumeSlider3.classList.remove("hidden"); // Show slider
     isPlaying = true;
-    playPauseBtn3.src = "images/stop.png";
-    volumeSlider3.classList.remove("hidden");
-
-    // Wait a bit before fading in to ensure Howl is initialized
-    setTimeout(() => {
-      const targetVolume = parseFloat(volumeSlider3.value);
-      const fadeSteps = 10;
-      const interval = fadeDuration / fadeSteps;
-      let step = targetVolume / fadeSteps;
-      let current = 0;
-
-      const fadeIn = setInterval(() => {
-        current += step;
-        if (current >= targetVolume) {
-          loop.volume(targetVolume);
-          clearInterval(fadeIn);
-        } else {
-          loop.volume(current);
-        }
-      }, interval);
-    }, 200); // slight delay to ensure sound is loaded
   } else {
-    // Fade out
-    const currentVolume = parseFloat(volumeSlider3.value);
-    const fadeSteps = 10;
-    const interval = fadeDuration / fadeSteps;
-    let step = currentVolume / fadeSteps;
-    let current = currentVolume;
-
-    const fadeOut = setInterval(() => {
-      current -= step;
-      if (current <= 0) {
-        loop.volume(0);
-        clearInterval(fadeOut);
-        loop.stop();
-        playPauseBtn3.src = "images/play3.png";
-        volumeSlider3.classList.add("hidden");
-        isPlaying = false;
-        console.log("sound3 (SeamlessLoop) faded and stopped.");
-      } else {
-        loop.volume(current);
-      }
-    }, interval);
+    loop.stop();
+    playPauseBtn3.src = "images/play3.png";
+    isPlaying = false;
+    volumeSlider3.classList.add("hidden"); // Hide slider
   }
 });
 
@@ -195,25 +195,10 @@ stopButton.addEventListener("click", function () {
   }
 
   if (isPlaying) {
-    const currentVolume = parseFloat(volumeSlider3.value);
-    const fadeSteps = 10;
-    const interval = fadeDuration / fadeSteps;
-    let step = currentVolume / fadeSteps;
-    let current = currentVolume;
-  
-    const fadeOut = setInterval(() => {
-      current -= step;
-      if (current <= 0) {
-        loop.volume(0);
-        clearInterval(fadeOut);
-        loop.stop();
-        playPauseBtn3.src = "images/play3.png";
-        volumeSlider3.classList.add("hidden");
-        isPlaying = false;
-        console.log("sound3 (SeamlessLoop) faded and stopped via Stop All.");
-      } else {
-        loop.volume(current);
-      }
-    }, interval);
+    loop.stop();
+    playPauseBtn3.src = "images/play3.png";
+    volumeSlider3.classList.add("hidden");
+    isPlaying = false;
+    console.log("sound3 (SeamlessLoop) stopped.");
   }
 });

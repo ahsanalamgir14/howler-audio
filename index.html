@@ -18,19 +18,19 @@
 			<p>Bullet</p>
 			<img id="playBtn1" class="playButton" src="images/play1.png" alt="play-stop btn">
 			<!-- Play / Pause Button -->
-			<input type="range" id="volumeSlider1" min="0" max="1" step="0.1" value="1"> <!-- Volume Slider -->
+			<input type="range" id="volumeSlider1" class="hidden" min="0" max="1" step="0.1" value="1"> <!-- Volume Slider -->
 		</div>
 
 		<div class="audio-controls">
 			<p>Charge</p>
 			<img id="playBtn2" class="playButton" src="images/play2.png" alt="play-stop btn">
-			<input type="range" id="volumeSlider2" min="0" max="1" step="0.1" value="1">
+			<input type="range" id="volumeSlider2" class="hidden" min="0" max="1" step="0.1" value="1">
 		</div>
 
 		<div class="audio-controls">
 			<p>Seemless noise</p>
 			<img id="playBtn3" class="playButton" src="images/play3.png" alt="play-stop btn">
-			<input type="range" id="volumeSlider3" min="0" max="1" step="0.1" value="1">
+			<input type="range" id="volumeSlider3" class="hidden" min="0" max="1" step="0.1" value="1">
 		</div>
 	</div>
 
@@ -38,6 +38,7 @@
 	<script type="text/javascript" src="js/howler-v2.2.4.min.js"></script>
 
 	<!-- All Howl instances grouped here please -->
+	<script type="text/javascript" src="js/SeamlessLoop.js"></script>
 	<script type="text/javascript" src="js/howler-instances.js"></script>
 
 </body>
