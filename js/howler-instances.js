@@ -10,6 +10,8 @@ const volumeSlider1 = document.getElementById("volumeSlider1");
 const playPauseBtn2 = document.getElementById("playBtn2");
 const volumeSlider2 = document.getElementById("volumeSlider2");
 
+const playAllBtn = document.getElementById("playAllBtn");
+
 // -------------------------
 // Sound 1
 // -------------------------
@@ -22,7 +24,7 @@ const sound1 = new Howl({
     playPauseBtn1.src = "images/play1.png";
     sound1Id = null;
     volumeSlider1.classList.add("hidden");
-  }
+  },
 });
 
 playPauseBtn1.addEventListener("click", function () {
@@ -48,7 +50,6 @@ playPauseBtn1.addEventListener("click", function () {
   }
 });
 
-
 volumeSlider1.addEventListener("input", function () {
   if (sound1Id !== null) {
     sound1.volume(volumeSlider1.value, sound1Id);
@@ -67,7 +68,7 @@ const sound2 = new Howl({
     playPauseBtn2.src = "images/play2.png";
     sound2Id = null;
     volumeSlider2.classList.add("hidden");
-  }
+  },
 });
 
 playPauseBtn2.addEventListener("click", function () {
@@ -169,7 +170,7 @@ console.log("stopButton element:", stopButton);
 
 stopButton.addEventListener("click", function () {
   console.log("Stop All Sounds button clicked.");
-  
+
   // --- Sound 1 ---
   if (sound1Id !== null) {
     sound1.fade(sound1.volume(sound1Id), 0, fadeDuration, sound1Id);
@@ -200,7 +201,7 @@ stopButton.addEventListener("click", function () {
     const interval = fadeDuration / fadeSteps;
     let step = currentVolume / fadeSteps;
     let current = currentVolume;
-  
+
     const fadeOut = setInterval(() => {
       current -= step;
       if (current <= 0) {
@@ -216,4 +217,70 @@ stopButton.addEventListener("click", function () {
       }
     }, interval);
   }
+
+  if (isDynamicPlaying) {
+    pauseCurrentSound();
+    console.log("Dynamic sounds stopped.");
+  }
+});
+
+// Sound file names
+const dynamicSounds = [];
+for (let i = 1; i <= 3; i++) {
+  dynamicSounds.push(`nogap_sounds/dj-beat${i}.mp3`);
+}
+
+let isDynamicPlaying = false;
+let currentIndex = 0;
+let currentHowl = null;
+
+function playSoundsInSequence(index = 0) {
+  if (index >= dynamicSounds.length) {
+    isDynamicPlaying = false;
+    playAllBtn.innerText = "▶️ Play All Sounds";
+    return;
+  }
+
+  currentHowl = new Howl({
+    src: [dynamicSounds[index]],
+    html5: true,
+    onend: function () {
+      if (isDynamicPlaying) {
+        playSoundsInSequence(index + 1);
+      }
+    },
+  });
+
+  currentHowl.play();
+  currentIndex = index;
+  isDynamicPlaying = true;
+  playAllBtn.innerText = "⏸️ Pause";
+}
+
+function pauseCurrentSound() {
+  if (currentHowl && currentHowl.playing()) {
+    currentHowl.stop(); // Stops and unloads current sound
+  }
+  isDynamicPlaying = false;
+  playAllBtn.innerText = "▶️ Play All Sounds";
+}
+
+playAllBtn.addEventListener("click", function () {
+  if (!isDynamicPlaying) {
+    playSoundsInSequence(currentIndex);
+  } else {
+    pauseCurrentSound();
+  }
+});
+
+const playNotificationBtn = document.getElementById("playNotificationBtn");
+
+// You can replace with any other sound file path you want
+const notificationSound = new Howl({
+  src: ["nogap_sounds/dj-single.mp3"],
+  html5: true,
+});
+
+playNotificationBtn.addEventListener("click", () => {
+  notificationSound.play();
 });

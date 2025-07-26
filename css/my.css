@@ -18,7 +18,20 @@ body {
     bottom: 25px;
     right: 25px;
     min-width: 100px;
-    height: 20px;
+    height: 40px;
+    color: #fff;
+    text-align: center;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 2px solid #fde56c;
+}
+
+.play-all-button {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    min-width: 100px;
+    height: 40px;
     color: #fff;
     text-align: center;
     padding: 5px 10px;

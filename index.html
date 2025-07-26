@@ -10,6 +10,7 @@
 	<link rel="stylesheet" href="css/my.css">
 	<!-- please, your code here -->
 	<link rel="stylesheet" href="css/styles.css">
+	<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
@@ -18,7 +19,8 @@
 			<p>Bullet</p>
 			<img id="playBtn1" class="playButton" src="images/play1.png" alt="play-stop btn">
 			<!-- Play / Pause Button -->
-			<input type="range" id="volumeSlider1" class="hidden" min="0" max="1" step="0.1" value="1"> <!-- Volume Slider -->
+			<input type="range" id="volumeSlider1" class="hidden" min="0" max="1" step="0.1" value="1">
+			<!-- Volume Slider -->
 		</div>
 
 		<div class="audio-controls">
@@ -32,8 +34,14 @@
 			<img id="playBtn3" class="playButton" src="images/play3.png" alt="play-stop btn">
 			<input type="range" id="volumeSlider3" class="hidden" min="0" max="1" step="0.1" value="1">
 		</div>
+
+		<button id="playNotificationBtn" class="my-4 px-4 py-2 bg-blue-500 text-white rounded">
+			Play Notification Sound
+		</button>
 	</div>
 
+
+	<div id="playAllBtn" class="play-all-button">Play All</div>
 	<div class="stopbutton">Stop All Sounds</div>
 	<script type="text/javascript" src="js/howler-v2.2.4.min.js"></script>
 
