@@ -562,51 +562,523 @@ stopAllBtn.addEventListener("click", function () {
   console.log("Stop All Sounds button clicked.");
   soundManager.stopAllSounds();
   soundManager.stopAllSeamlessLoops();
+  // Also stop all dynamically loaded seamless sounds
+  simpleSeamlessLoader.stopAllSeamlessSounds();
 });
 
 // ========================================
-// SCALABLE TEMPLATE FOR ADDING MORE SOUNDS
+// SIMPLE SEAMLESS SOUND LOADER
 // ========================================
-/*
-To add more sounds, just copy this template and modify:
 
-// -------------------------
-// Sound X (Your Sound Name)
-// -------------------------
-const playPauseBtnX = document.getElementById("playBtnX");
-const volumeSliderX = document.getElementById("volumeSliderX");
+class SimpleSeamlessLoader {
+  constructor() {
+    this.seamlessSounds = new Map();
+    this.seamlessFolder = "nogap_sounds/seamless/";
+    this.supportedFormats = [".ogg", ".mp3", ".wav", ".m4a"];
 
-const soundX = new Howl({
-  src: ["nogap_sounds/your-sound-file.mp3"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    playPauseBtnX.src = "images/play1.png"; // or play2.png, play3.png
-    volumeSliderX.classList.add("hidden");
-    soundManager.activeSounds.delete("soundX");
-    soundManager.removeFromSidebar("soundX");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound("soundX", soundX, playPauseBtnX, volumeSliderX, "Your Sound Name");
-
-playPauseBtnX.addEventListener("click", function () {
-  if (soundX.playing()) {
-    soundManager.stopSound("soundX");
-  } else {
-    soundManager.playSound("soundX");
+    // Auto-initialize when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.init());
+    } else {
+      this.init();
+    }
   }
-});
 
-volumeSliderX.addEventListener("input", function () {
-  soundManager.setVolume("soundX", volumeSliderX.value);
-});
+  init() {
+    this.loadSeamlessSoundsFromFolder();
+  }
 
-Don't forget to add the HTML controls in index.html:
-<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
-  <p class="text-sm font-semibold mb-2 text-blue-300">Your Sound Name</p>
-  <img id="playBtnX" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity" src="images/play1.png" alt="play-stop btn">
-  <input type="range" id="volumeSliderX" class="hidden w-full mt-2" min="0" max="1" step="0.1" value="1">
-</div>
-*/
+  // Load seamless sounds from folder
+  async loadSeamlessSoundsFromFolder() {
+    try {
+      console.log("Loading seamless sounds from folder...");
+
+      // Load files from static list
+      const filesLoaded = await this.loadFromStaticList();
+
+      if (!filesLoaded) {
+        // Fallback: generate demo sounds for testing
+        await this.generateSimpleSeamlessSounds();
+      }
+
+      this.addSeamlessSoundsToExistingColumn();
+    } catch (error) {
+      console.error("Error loading seamless sounds:", error);
+    }
+  }
+
+  // Load files from static list (manually update this when you add new files)
+  async loadFromStaticList() {
+    // MANUAL FILE LIST - Update this when you add new files to nogap_sounds/seamless/
+    const staticFileList = [
+      "seamless_001.ogg",
+      "seamless_002.ogg",
+      // Add more files here: 'seamless_011.ogg', 'seamless_012.ogg', etc.
+    ];
+
+    console.log("Checking for files in:", this.seamlessFolder);
+    console.log("Looking for files:", staticFileList);
+
+    let foundFiles = [];
+
+    // Test each file to see if it exists
+    for (const fileName of staticFileList) {
+      const fullPath = `${this.seamlessFolder}${fileName}`;
+      console.log(`Testing file: ${fullPath}`);
+
+      try {
+        const response = await fetch(fullPath);
+        console.log(
+          `Response for ${fileName}:`,
+          response.status,
+          response.statusText
+        );
+
+        if (response.ok) {
+          foundFiles.push(fileName);
+          console.log(`✅ Found file: ${fileName}`);
+        } else {
+          console.log(`❌ File not found (${response.status}): ${fileName}`);
+        }
+      } catch (error) {
+        // File doesn't exist, continue to next
+        console.log(`❌ Error loading ${fileName}:`, error.message);
+      }
+    }
+
+    console.log(`Total files found: ${foundFiles.length}`);
+    console.log("Found files:", foundFiles);
+
+    if (foundFiles.length > 0) {
+      // Register found files
+      foundFiles.forEach((fileName, index) => {
+        const fileExtension = fileName.split(".").pop();
+        const baseName = fileName.replace(`.${fileExtension}`, "");
+
+        this.registerSeamlessSound({
+          id: `seamless_${(index + 1).toString().padStart(3, "0")}`,
+          filePath: `${this.seamlessFolder}${fileName}`,
+          name: `${baseName.charAt(0).toUpperCase() + baseName.slice(1)}`,
+          volume: 0.8,
+        });
+      });
+
+      console.log(`✅ Loaded ${foundFiles.length} files from static list`);
+      return true;
+    }
+
+    console.log("❌ No files found from static list, using demo sounds");
+    return false;
+  }
+
+  // Generate simple seamless sounds for testing
+  async generateSimpleSeamlessSounds() {
+    const sounds = [];
+
+    // Generate 10 simple sounds
+    for (let i = 1; i <= 10; i++) {
+      const format =
+        this.supportedFormats[
+          Math.floor(Math.random() * this.supportedFormats.length)
+        ];
+
+      sounds.push({
+        id: `seamless_${i.toString().padStart(3, "0")}`,
+        filePath: `${this.seamlessFolder}seamless_${i
+          .toString()
+          .padStart(3, "0")}${format}`,
+        name: `Seamless Sound ${i}`,
+        volume: 0.8,
+      });
+    }
+
+    sounds.forEach((soundData) => {
+      this.registerSeamlessSound(soundData);
+    });
+
+    console.log(`Generated ${sounds.length} simple seamless sounds`);
+  }
+
+  // Register a seamless sound
+  registerSeamlessSound(soundData) {
+    const { id, filePath, name, volume = 1.0 } = soundData;
+
+    this.seamlessSounds.set(id, {
+      id,
+      filePath,
+      name,
+      volume,
+      isPlaying: false,
+      howlInstance: null,
+      currentSoundId: null,
+    });
+  }
+
+  // Add seamless sounds to existing seamless column
+  addSeamlessSoundsToExistingColumn() {
+    // Try multiple selectors to find the seamless column
+    let seamlessColumn = document.querySelector(
+      ".grid.grid-cols-1.lg\\:grid-cols-3 > div:last-child"
+    );
+
+    if (!seamlessColumn) {
+      // Try alternative selector
+      seamlessColumn = document.querySelector(
+        ".grid.grid-cols-1.lg\\:grid-cols-3 > div:nth-child(3)"
+      );
+    }
+
+    if (!seamlessColumn) {
+      // Try finding by content
+      const allColumns = document.querySelectorAll(
+        ".grid.grid-cols-1.lg\\:grid-cols-3 > div"
+      );
+      seamlessColumn = Array.from(allColumns).find(
+        (col) =>
+          col.textContent.includes("Seamless") || col.textContent.includes("🔄")
+      );
+    }
+
+    if (!seamlessColumn) {
+      console.error("Seamless column not found - trying all columns");
+      // Debug: log all columns
+      const allColumns = document.querySelectorAll(
+        ".grid.grid-cols-1.lg\\:grid-cols-3 > div"
+      );
+      console.log("Found columns:", allColumns.length);
+      allColumns.forEach((col, index) => {
+        console.log(`Column ${index}:`, col.textContent.substring(0, 50));
+      });
+      return;
+    }
+
+    console.log("Found seamless column:", seamlessColumn);
+
+    // Find the existing seamless controls container
+    let existingControls = seamlessColumn.querySelector(".space-y-4");
+
+    if (!existingControls) {
+      // Try alternative selectors
+      existingControls = seamlessColumn.querySelector(
+        ".space-y-4, div:last-child, .audio-controls"
+      ).parentElement;
+    }
+
+    if (!existingControls) {
+      // Create the container if it doesn't exist
+      existingControls = document.createElement("div");
+      existingControls.className = "space-y-4";
+      seamlessColumn.appendChild(existingControls);
+      console.log("Created new controls container");
+    }
+
+    if (!existingControls) {
+      console.error(
+        "Seamless controls container not found and could not be created"
+      );
+      return;
+    }
+
+    console.log("Found controls container:", existingControls);
+
+    // Add reload button to the header
+    const header = seamlessColumn.querySelector(".text-center.mb-6");
+    if (header && !header.querySelector("#reloadSeamlessBtn")) {
+      const reloadBtn = document.createElement("button");
+      reloadBtn.id = "reloadSeamlessBtn";
+      reloadBtn.className =
+        "bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded transition-colors ml-4";
+      reloadBtn.textContent = "🔄 Reload";
+      reloadBtn.addEventListener("click", () => {
+        // Clear existing dynamic sounds
+        const dynamicSounds = existingControls.querySelectorAll(
+          '[data-sound-id^="seamless_"]'
+        );
+        dynamicSounds.forEach((sound) => sound.remove());
+
+        // Reload sounds
+        this.seamlessSounds.clear();
+        this.loadSeamlessSoundsFromFolder();
+      });
+
+      header.appendChild(reloadBtn);
+    }
+
+    console.log(`Adding ${this.seamlessSounds.size} seamless sounds to column`);
+
+    // Add additional seamless sounds
+    this.seamlessSounds.forEach((soundData, id) => {
+      console.log(`Creating control for: ${soundData.name}`);
+      const soundControl = this.createSeamlessControl(soundData);
+      existingControls.appendChild(soundControl);
+      console.log(`Added control for: ${soundData.name}`);
+    });
+
+    console.log(
+      `✅ Added ${this.seamlessSounds.size} seamless sounds to existing column`
+    );
+  }
+
+  // Create seamless sound control element
+  createSeamlessControl(soundData) {
+    const container = document.createElement("div");
+    container.className =
+      "audio-controls bg-gray-800 p-4 rounded-lg border border-green-700 mb-3";
+    container.dataset.soundId = soundData.id;
+
+    container.innerHTML = `
+      <p class="text-sm font-semibold mb-2 text-green-300">${soundData.name}</p>
+      <img id="seamlessPlayBtn_${soundData.id}" 
+           class="playButton w-16 h-16 cursor-pointer hover:opacity-80 transition-opacity object-contain" 
+           src="images/play3.png" alt="play-stop btn">
+      <input type="range" id="seamlessVolumeSlider_${soundData.id}" 
+             class="hidden w-full mt-2" min="0" max="1" step="0.1" value="${soundData.volume}">
+    `;
+
+    // Add event listeners
+    const playBtn = container.querySelector(`#seamlessPlayBtn_${soundData.id}`);
+    const volumeSlider = container.querySelector(
+      `#seamlessVolumeSlider_${soundData.id}`
+    );
+
+    if (playBtn) {
+      playBtn.addEventListener("click", () => {
+        console.log(`Clicked play button for: ${soundData.name}`);
+        this.toggleSeamlessSound(soundData.id);
+      });
+    }
+
+    if (volumeSlider) {
+      volumeSlider.addEventListener("input", (e) => {
+        this.setSeamlessVolume(soundData.id, e.target.value);
+      });
+    }
+
+    console.log(`Created control element for: ${soundData.name}`);
+    return container;
+  }
+
+  // Toggle seamless sound play/stop
+  toggleSeamlessSound(id) {
+    const soundData = this.seamlessSounds.get(id);
+    if (!soundData) return;
+
+    if (soundData.isPlaying) {
+      this.stopSeamlessSound(id);
+    } else {
+      this.playSeamlessSound(id);
+    }
+  }
+
+  // Play seamless sound
+  playSeamlessSound(id) {
+    console.log(`Attempting to play seamless sound: ${id}`);
+    const soundData = this.seamlessSounds.get(id);
+    if (!soundData) {
+      console.error(`Sound data not found for: ${id}`);
+      return;
+    }
+
+    console.log(`Sound data found:`, soundData);
+
+    // Create Howl instance if not exists
+    if (!soundData.howlInstance) {
+      console.log(`Creating Howl instance for: ${soundData.filePath}`);
+      soundData.howlInstance = new Howl({
+        src: [soundData.filePath],
+        html5: true,
+        loop: true,
+        onload: () => {
+          console.log(`✅ Seamless sound loaded: ${soundData.name}`);
+        },
+        onloaderror: (soundId, error) => {
+          console.error(
+            `❌ Failed to load seamless sound ${soundData.name}:`,
+            error
+          );
+        },
+        onplay: () => {
+          console.log(`🎵 Started playing: ${soundData.name}`);
+        },
+        onstop: () => {
+          console.log(`⏹️ Stopped playing: ${soundData.name}`);
+        },
+      });
+    }
+
+    const howl = soundData.howlInstance;
+    console.log(`Howl instance:`, howl);
+
+    const soundId = howl.play();
+    console.log(`Play returned sound ID:`, soundId);
+
+    soundData.isPlaying = true;
+    soundData.currentSoundId = soundId;
+
+    // Update UI
+    this.updateSeamlessButtonState(id, "stop");
+    this.addSeamlessToSidebar(id);
+
+    // Fade in
+    howl.fade(0, soundData.volume, 500, soundId);
+    console.log(`✅ Successfully started playing: ${soundData.name}`);
+  }
+
+  // Stop seamless sound
+  stopSeamlessSound(id) {
+    const soundData = this.seamlessSounds.get(id);
+    if (!soundData || !soundData.isPlaying) return;
+
+    const howl = soundData.howlInstance;
+    const soundId = soundData.currentSoundId;
+
+    if (howl && soundId) {
+      howl.fade(howl.volume(soundId), 0, 500, soundId);
+      setTimeout(() => {
+        howl.stop(soundId);
+      }, 500);
+    }
+
+    soundData.isPlaying = false;
+    soundData.currentSoundId = null;
+
+    // Update UI
+    this.updateSeamlessButtonState(id, "play");
+    this.removeSeamlessFromSidebar(id);
+  }
+
+  // Update seamless button state
+  updateSeamlessButtonState(id, state) {
+    const playBtn = document.querySelector(`#seamlessPlayBtn_${id}`);
+    const volumeSlider = document.querySelector(`#seamlessVolumeSlider_${id}`);
+
+    if (!playBtn) return;
+
+    const imagePath = state === "play" ? "images/play3.png" : "images/stop.png";
+    this.setButtonImage(playBtn, imagePath);
+
+    if (volumeSlider) {
+      volumeSlider.classList.toggle("hidden", state === "play");
+    }
+  }
+
+  // Set volume for seamless sound
+  setSeamlessVolume(id, volume) {
+    const soundData = this.seamlessSounds.get(id);
+    if (!soundData || !soundData.isPlaying) return;
+
+    const howl = soundData.howlInstance;
+    const soundId = soundData.currentSoundId;
+
+    if (howl && soundId) {
+      howl.volume(volume, soundId);
+    }
+  }
+
+  // Add seamless sound to sidebar
+  addSeamlessToSidebar(id) {
+    const soundData = this.seamlessSounds.get(id);
+    if (!soundData) return;
+
+    const sidebar = document.getElementById("activeTracks");
+    if (!sidebar) return;
+
+    // Remove "no sounds" message if present
+    const noSoundsMsg = sidebar.querySelector(".text-gray-500");
+    if (noSoundsMsg) {
+      noSoundsMsg.remove();
+    }
+
+    // Create sidebar item
+    const sidebarItem = document.createElement("div");
+    sidebarItem.className =
+      "flex items-center justify-between p-3 bg-gray-700 rounded mb-2";
+    sidebarItem.dataset.soundId = id;
+
+    sidebarItem.innerHTML = `
+      <div class="flex-1">
+        <p class="text-sm font-medium text-white">${soundData.name}</p>
+        <p class="text-xs text-green-400">🔄 Seamless</p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <input type="range" class="w-20" min="0" max="1" step="0.1" value="${soundData.volume}">
+        <button class="text-red-400 hover:text-red-300 text-sm">✕</button>
+      </div>
+    `;
+
+    // Add event listeners
+    const stopBtn = sidebarItem.querySelector("button");
+    const volumeSlider = sidebarItem.querySelector('input[type="range"]');
+
+    stopBtn.addEventListener("click", () => this.stopSeamlessSound(id));
+    volumeSlider.addEventListener("input", (e) =>
+      this.setSeamlessVolume(id, e.target.value)
+    );
+
+    sidebar.appendChild(sidebarItem);
+    this.updateActiveCount();
+  }
+
+  // Remove seamless sound from sidebar
+  removeSeamlessFromSidebar(id) {
+    const sidebar = document.getElementById("activeTracks");
+    if (!sidebar) return;
+
+    const item = sidebar.querySelector(`[data-sound-id="${id}"]`);
+    if (item) {
+      item.remove();
+    }
+
+    // Show "no sounds" message if sidebar is empty
+    if (sidebar.children.length === 0) {
+      sidebar.innerHTML = `
+        <div class="text-center text-gray-500 py-8">
+          <p>No sounds playing</p>
+          <p class="text-sm">Start playing sounds to see them here</p>
+        </div>
+      `;
+    }
+
+    this.updateActiveCount();
+  }
+
+  // Update active count
+  updateActiveCount() {
+    const activeCount = document.getElementById("activeCount");
+    if (activeCount) {
+      const playingSeamless = Array.from(this.seamlessSounds.values()).filter(
+        (s) => s.isPlaying
+      ).length;
+      const existingActive = soundManager.activeSounds.size;
+      activeCount.textContent = existingActive + playingSeamless;
+    }
+  }
+
+  // Set button image (reuse existing method)
+  setButtonImage(button, imagePath) {
+    const img = new Image();
+    img.onload = () => {
+      button.src = imagePath;
+    };
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${imagePath}`);
+    };
+    img.src = imagePath;
+  }
+
+  // Stop all seamless sounds
+  stopAllSeamlessSounds() {
+    this.seamlessSounds.forEach((soundData, id) => {
+      if (soundData.isPlaying) {
+        this.stopSeamlessSound(id);
+      }
+    });
+  }
+}
+
+// Initialize simple seamless loader
+const simpleSeamlessLoader = new SimpleSeamlessLoader();
+
+// ========================================
+// EXISTING CODE CONTINUES BELOW
+// ========================================
