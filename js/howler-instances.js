@@ -596,9 +596,9 @@ class SimpleSeamlessLoader {
       // Load files from static list
       const filesLoaded = await this.loadFromStaticList();
 
+      // If no files found, do not add any demo sounds
       if (!filesLoaded) {
-        // Fallback: generate demo sounds for testing
-        await this.generateSimpleSeamlessSounds();
+        console.log("No seamless files found in static list. Nothing to add.");
       }
 
       this.addSeamlessSoundsToExistingColumn();
@@ -669,34 +669,6 @@ class SimpleSeamlessLoader {
 
     console.log("❌ No files found from static list, using demo sounds");
     return false;
-  }
-
-  // Generate simple seamless sounds for testing
-  async generateSimpleSeamlessSounds() {
-    const sounds = [];
-
-    // Generate 10 simple sounds
-    for (let i = 1; i <= 10; i++) {
-      const format =
-        this.supportedFormats[
-          Math.floor(Math.random() * this.supportedFormats.length)
-        ];
-
-      sounds.push({
-        id: `seamless_${i.toString().padStart(3, "0")}`,
-        filePath: `${this.seamlessFolder}seamless_${i
-          .toString()
-          .padStart(3, "0")}${format}`,
-        name: `Seamless Sound ${i}`,
-        volume: 0.8,
-      });
-    }
-
-    sounds.forEach((soundData) => {
-      this.registerSeamlessSound(soundData);
-    });
-
-    console.log(`Generated ${sounds.length} simple seamless sounds`);
   }
 
   // Register a seamless sound
