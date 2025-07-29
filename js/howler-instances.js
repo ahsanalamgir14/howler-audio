@@ -96,6 +96,9 @@ class SoundManager {
     console.log("Stopping all sounds...");
 
     this.activeSounds.forEach((soundId, soundKey) => {
+      // Skip bullet sound (sound1) as it's non-stoppable
+      if (soundKey === "sound1") return;
+
       const sound = this.sounds.get(soundKey);
       if (sound) {
         sound.howl.fade(sound.howl.volume(soundId), 0, fadeDuration, soundId);
@@ -455,9 +458,11 @@ soundManager.registerSound(
 );
 
 playPauseBtn1.addEventListener("click", function () {
+  // Bullet is non-stoppable - only allow playing if not currently playing
   if (!sound1.playing()) {
     soundManager.playSound("sound1");
   }
+  // If already playing, do nothing - button is disabled until sound ends
 });
 
 volumeSlider1.addEventListener("input", function () {
@@ -534,240 +539,6 @@ volumeSlider3.addEventListener("input", function () {
   if (sound && sound.isPlaying) {
     sound.loop.volume(parseFloat(volumeSlider3.value));
   }
-});
-
-// -------------------------
-// Sound 4 (White Noise)
-// -------------------------
-const playPauseBtn4 = document.getElementById("playBtn4");
-const volumeSlider4 = document.getElementById("volumeSlider4");
-
-const sound4 = new Howl({
-  src: ["nogap_sounds/white-noise.ogg"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn4, "images/play1.png");
-    volumeSlider4.classList.add("hidden");
-    soundManager.activeSounds.delete("sound4");
-    soundManager.removeFromSidebar("sound4");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound4",
-  sound4,
-  playPauseBtn4,
-  volumeSlider4,
-  "White Noise"
-);
-
-playPauseBtn4.addEventListener("click", function () {
-  if (sound4.playing()) {
-    soundManager.stopSound("sound4");
-  } else {
-    soundManager.playSound("sound4");
-  }
-});
-
-volumeSlider4.addEventListener("input", function () {
-  soundManager.setVolume("sound4", volumeSlider4.value);
-});
-
-// -------------------------
-// Sound 5 (Pink Noise)
-// -------------------------
-const playPauseBtn5 = document.getElementById("playBtn5");
-const volumeSlider5 = document.getElementById("volumeSlider5");
-
-const sound5 = new Howl({
-  src: ["nogap_sounds/pink-noise.ogg"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn5, "images/play2.png");
-    volumeSlider5.classList.add("hidden");
-    soundManager.activeSounds.delete("sound5");
-    soundManager.removeFromSidebar("sound5");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound5",
-  sound5,
-  playPauseBtn5,
-  volumeSlider5,
-  "Pink Noise"
-);
-
-playPauseBtn5.addEventListener("click", function () {
-  if (sound5.playing()) {
-    soundManager.stopSound("sound5");
-  } else {
-    soundManager.playSound("sound5");
-  }
-});
-
-volumeSlider5.addEventListener("input", function () {
-  soundManager.setVolume("sound5", volumeSlider5.value);
-});
-
-// -------------------------
-// Sound 6 (Brown Noise)
-// -------------------------
-const playPauseBtn6 = document.getElementById("playBtn6");
-const volumeSlider6 = document.getElementById("volumeSlider6");
-
-const sound6 = new Howl({
-  src: ["nogap_sounds/brown-noise.ogg"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn6, "images/play3.png");
-    volumeSlider6.classList.add("hidden");
-    soundManager.activeSounds.delete("sound6");
-    soundManager.removeFromSidebar("sound6");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound6",
-  sound6,
-  playPauseBtn6,
-  volumeSlider6,
-  "Brown Noise"
-);
-
-playPauseBtn6.addEventListener("click", function () {
-  if (sound6.playing()) {
-    soundManager.stopSound("sound6");
-  } else {
-    soundManager.playSound("sound6");
-  }
-});
-
-volumeSlider6.addEventListener("input", function () {
-  soundManager.setVolume("sound6", volumeSlider6.value);
-});
-
-// -------------------------
-// Sound 7 (DJ Beat 1)
-// -------------------------
-const playPauseBtn7 = document.getElementById("playBtn7");
-const volumeSlider7 = document.getElementById("volumeSlider7");
-
-const sound7 = new Howl({
-  src: ["nogap_sounds/dj-beat1.mp3"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn7, "images/play1.png");
-    volumeSlider7.classList.add("hidden");
-    soundManager.activeSounds.delete("sound7");
-    soundManager.removeFromSidebar("sound7");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound7",
-  sound7,
-  playPauseBtn7,
-  volumeSlider7,
-  "DJ Beat 1"
-);
-
-playPauseBtn7.addEventListener("click", function () {
-  if (sound7.playing()) {
-    soundManager.stopSound("sound7");
-  } else {
-    soundManager.playSound("sound7");
-  }
-});
-
-volumeSlider7.addEventListener("input", function () {
-  soundManager.setVolume("sound7", volumeSlider7.value);
-});
-
-// -------------------------
-// Sound 8 (DJ Beat 2)
-// -------------------------
-const playPauseBtn8 = document.getElementById("playBtn8");
-const volumeSlider8 = document.getElementById("volumeSlider8");
-
-const sound8 = new Howl({
-  src: ["nogap_sounds/dj-beat2.mp3"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn8, "images/play2.png");
-    volumeSlider8.classList.add("hidden");
-    soundManager.activeSounds.delete("sound8");
-    soundManager.removeFromSidebar("sound8");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound8",
-  sound8,
-  playPauseBtn8,
-  volumeSlider8,
-  "DJ Beat 2"
-);
-
-playPauseBtn8.addEventListener("click", function () {
-  if (sound8.playing()) {
-    soundManager.stopSound("sound8");
-  } else {
-    soundManager.playSound("sound8");
-  }
-});
-
-volumeSlider8.addEventListener("input", function () {
-  soundManager.setVolume("sound8", volumeSlider8.value);
-});
-
-// -------------------------
-// Sound 9 (DJ Beat 3)
-// -------------------------
-const playPauseBtn9 = document.getElementById("playBtn9");
-const volumeSlider9 = document.getElementById("volumeSlider9");
-
-const sound9 = new Howl({
-  src: ["nogap_sounds/dj-beat3.mp3"],
-  loop: false,
-  html5: true,
-  onend: function () {
-    soundManager.setButtonImage(playPauseBtn9, "images/play3.png");
-    volumeSlider9.classList.add("hidden");
-    soundManager.activeSounds.delete("sound9");
-    soundManager.removeFromSidebar("sound9");
-    soundManager.updateActiveCount();
-  },
-});
-
-soundManager.registerSound(
-  "sound9",
-  sound9,
-  playPauseBtn9,
-  volumeSlider9,
-  "DJ Beat 3"
-);
-
-playPauseBtn9.addEventListener("click", function () {
-  if (sound9.playing()) {
-    soundManager.stopSound("sound9");
-  } else {
-    soundManager.playSound("sound9");
-  }
-});
-
-volumeSlider9.addEventListener("input", function () {
-  soundManager.setVolume("sound9", volumeSlider9.value);
 });
 
 // -------------------------
