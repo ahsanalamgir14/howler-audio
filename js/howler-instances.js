@@ -3,15 +3,38 @@
 const fadeDuration = 1000; // Duration for fade in/out in milliseconds
 const sound3Duration = 2000; // Duration for sound3 in milliseconds
 
-// Universal sound management system
+// Universal sound management system with DJ Sidebar
 class SoundManager {
   constructor() {
     this.sounds = new Map(); // Map to store all sound instances
     this.activeSounds = new Map(); // Map to track active sound IDs
+    this.soundNames = new Map(); // Map to store sound names for display
+    this.initSidebar();
   }
 
-  // Register a sound with its controls
-  registerSound(id, howlInstance, playButton, volumeSlider, isLoop = false) {
+  // Initialize the DJ sidebar
+  initSidebar() {
+    this.activeTracksContainer = document.getElementById("activeTracks");
+    this.activeCountElement = document.getElementById("activeCount");
+    this.totalSoundsElement = document.getElementById("totalSounds");
+    this.clearAllBtn = document.getElementById("clearAllBtn");
+
+    // Add event listeners
+    this.clearAllBtn.addEventListener("click", () => {
+      this.stopAllSounds();
+      this.stopAllSeamlessLoops();
+    });
+  }
+
+  // Register a sound with its controls and name
+  registerSound(
+    id,
+    howlInstance,
+    playButton,
+    volumeSlider,
+    soundName,
+    isLoop = false
+  ) {
     this.sounds.set(id, {
       howl: howlInstance,
       playButton: playButton,
@@ -19,6 +42,8 @@ class SoundManager {
       isLoop: isLoop,
       soundId: null,
     });
+    this.soundNames.set(id, soundName);
+    this.updateTotalSounds();
   }
 
   // Play a sound
@@ -34,6 +59,10 @@ class SoundManager {
     sound.playButton.src = "images/stop.png";
     sound.volumeSlider.classList.remove("hidden");
     this.activeSounds.set(id, sound.soundId);
+
+    // Add to sidebar
+    this.addToSidebar(id);
+    this.updateActiveCount();
   }
 
   // Stop a specific sound
@@ -56,6 +85,10 @@ class SoundManager {
       sound.howl.stop(sound.soundId);
       sound.soundId = null;
       this.activeSounds.delete(id);
+
+      // Remove from sidebar
+      this.removeFromSidebar(id);
+      this.updateActiveCount();
     }, fadeDuration);
   }
 
@@ -80,6 +113,8 @@ class SoundManager {
     });
 
     this.activeSounds.clear();
+    this.clearSidebar();
+    this.updateActiveCount();
   }
 
   // Handle volume change for a sound
@@ -91,7 +126,7 @@ class SoundManager {
   }
 
   // Handle seamless loop (special case)
-  registerSeamlessLoop(id, loopInstance, playButton, volumeSlider) {
+  registerSeamlessLoop(id, loopInstance, playButton, volumeSlider, soundName) {
     this.sounds.set(id, {
       loop: loopInstance,
       playButton: playButton,
@@ -99,6 +134,8 @@ class SoundManager {
       isLoop: true,
       isPlaying: false,
     });
+    this.soundNames.set(id, soundName);
+    this.updateTotalSounds();
   }
 
   // Play seamless loop
@@ -110,6 +147,10 @@ class SoundManager {
     sound.isPlaying = true;
     sound.playButton.src = "images/stop.png";
     sound.volumeSlider.classList.remove("hidden");
+
+    // Add to sidebar
+    this.addToSidebar(id);
+    this.updateActiveCount();
 
     setTimeout(() => {
       const targetVolume = parseFloat(sound.volumeSlider.value);
@@ -153,6 +194,10 @@ class SoundManager {
         sound.volumeSlider.classList.add("hidden");
         sound.isPlaying = false;
         console.log(`${id} (SeamlessLoop) faded and stopped.`);
+
+        // Remove from sidebar
+        this.removeFromSidebar(id);
+        this.updateActiveCount();
       } else {
         sound.loop.volume(current);
       }
@@ -166,6 +211,129 @@ class SoundManager {
         this.stopSeamlessLoop(id);
       }
     });
+  }
+
+  // Add sound to sidebar
+  addToSidebar(id) {
+    const soundName = this.soundNames.get(id);
+    const sound = this.sounds.get(id);
+
+    // Remove "no sounds playing" message if it exists
+    const noSoundsMsg =
+      this.activeTracksContainer.querySelector(".text-gray-500");
+    if (noSoundsMsg) {
+      noSoundsMsg.remove();
+    }
+
+    // Check if track is already in sidebar
+    const existingTrack = document.getElementById(`sidebar-track-${id}`);
+    if (existingTrack) return;
+
+    // Create track element
+    const trackElement = document.createElement("div");
+    trackElement.id = `sidebar-track-${id}`;
+    trackElement.className =
+      "bg-gray-700 rounded-lg p-3 border border-gray-600";
+
+    const isLoop = sound.isLoop;
+    const isPlaying = isLoop ? sound.isPlaying : sound.soundId !== null;
+
+    trackElement.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full ${
+            isPlaying ? "bg-green-500 animate-pulse" : "bg-gray-500"
+          }"></div>
+          <span class="text-sm font-medium text-white">${soundName}</span>
+        </div>
+        <button onclick="soundManager.stopFromSidebar('${id}')" class="text-red-400 hover:text-red-300 text-sm">
+          ✕
+        </button>
+      </div>
+      <div class="flex items-center space-x-2">
+        <input type="range" 
+               min="0" max="1" step="0.1" 
+               value="${sound.volumeSlider.value}"
+               onchange="soundManager.setVolumeFromSidebar('${id}', this.value)"
+               class="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider">
+        <span class="text-xs text-gray-400 w-8">${Math.round(
+          sound.volumeSlider.value * 100
+        )}%</span>
+      </div>
+    `;
+
+    this.activeTracksContainer.appendChild(trackElement);
+  }
+
+  // Remove sound from sidebar
+  removeFromSidebar(id) {
+    const trackElement = document.getElementById(`sidebar-track-${id}`);
+    if (trackElement) {
+      trackElement.remove();
+    }
+
+    // Show "no sounds playing" message if no tracks left
+    if (this.activeTracksContainer.children.length === 0) {
+      this.activeTracksContainer.innerHTML = `
+        <div class="text-center text-gray-500 py-8">
+          <p>No sounds playing</p>
+          <p class="text-sm">Start playing sounds to see them here</p>
+        </div>
+      `;
+    }
+  }
+
+  // Clear sidebar
+  clearSidebar() {
+    this.activeTracksContainer.innerHTML = `
+      <div class="text-center text-gray-500 py-8">
+        <p>No sounds playing</p>
+        <p class="text-sm">Start playing sounds to see them here</p>
+      </div>
+    `;
+  }
+
+  // Stop sound from sidebar
+  stopFromSidebar(id) {
+    const sound = this.sounds.get(id);
+    if (sound.isLoop) {
+      this.stopSeamlessLoop(id);
+    } else {
+      this.stopSound(id);
+    }
+  }
+
+  // Set volume from sidebar
+  setVolumeFromSidebar(id, volume) {
+    const sound = this.sounds.get(id);
+    if (sound.isLoop) {
+      sound.loop.volume(parseFloat(volume));
+    } else {
+      this.setVolume(id, volume);
+    }
+
+    // Update the volume display
+    const trackElement = document.getElementById(`sidebar-track-${id}`);
+    if (trackElement) {
+      const volumeDisplay = trackElement.querySelector(".text-gray-400");
+      if (volumeDisplay) {
+        volumeDisplay.textContent = `${Math.round(volume * 100)}%`;
+      }
+    }
+  }
+
+  // Update active count
+  updateActiveCount() {
+    const count =
+      this.activeSounds.size +
+      Array.from(this.sounds.values()).filter((s) => s.isLoop && s.isPlaying)
+        .length;
+    this.activeCountElement.textContent = count;
+  }
+
+  // Update total sounds count
+  updateTotalSounds() {
+    this.totalSoundsElement.textContent = this.sounds.size;
   }
 }
 
@@ -186,10 +354,18 @@ const sound1 = new Howl({
     playPauseBtn1.src = "images/play1.png";
     volumeSlider1.classList.add("hidden");
     soundManager.activeSounds.delete("sound1");
+    soundManager.removeFromSidebar("sound1");
+    soundManager.updateActiveCount();
   },
 });
 
-soundManager.registerSound("sound1", sound1, playPauseBtn1, volumeSlider1);
+soundManager.registerSound(
+  "sound1",
+  sound1,
+  playPauseBtn1,
+  volumeSlider1,
+  "Bullet"
+);
 
 playPauseBtn1.addEventListener("click", function () {
   if (!sound1.playing()) {
@@ -215,10 +391,18 @@ const sound2 = new Howl({
     playPauseBtn2.src = "images/play2.png";
     volumeSlider2.classList.add("hidden");
     soundManager.activeSounds.delete("sound2");
+    soundManager.removeFromSidebar("sound2");
+    soundManager.updateActiveCount();
   },
 });
 
-soundManager.registerSound("sound2", sound2, playPauseBtn2, volumeSlider2);
+soundManager.registerSound(
+  "sound2",
+  sound2,
+  playPauseBtn2,
+  volumeSlider2,
+  "Charge"
+);
 
 playPauseBtn2.addEventListener("click", function () {
   if (sound2.playing()) {
@@ -241,7 +425,13 @@ loop.addUri("nogap_sounds/sound3.ogg", sound3Duration, "sound3");
 const playPauseBtn3 = document.getElementById("playBtn3");
 const volumeSlider3 = document.getElementById("volumeSlider3");
 
-soundManager.registerSeamlessLoop("sound3", loop, playPauseBtn3, volumeSlider3);
+soundManager.registerSeamlessLoop(
+  "sound3",
+  loop,
+  playPauseBtn3,
+  volumeSlider3,
+  "Seamless Noise"
+);
 
 playPauseBtn3.addEventListener("click", function () {
   const sound = soundManager.sounds.get("sound3");
@@ -260,23 +450,7 @@ volumeSlider3.addEventListener("input", function () {
 });
 
 // -------------------------
-// Stop All Sounds Button
-// -------------------------
-const stopButton = document.querySelector(".stopbutton");
-console.log("stopButton element:", stopButton);
-
-stopButton.addEventListener("click", function () {
-  console.log("Stop All Sounds button clicked.");
-  soundManager.stopAllSounds();
-  soundManager.stopAllSeamlessLoops();
-});
-
-// Example of how to easily add more sounds:
-// Just uncomment and modify these blocks to add more sounds
-
-/*
-// -------------------------
-// Sound 4 (Example - White Noise)
+// Sound 4 (White Noise)
 // -------------------------
 const playPauseBtn4 = document.getElementById("playBtn4");
 const volumeSlider4 = document.getElementById("volumeSlider4");
@@ -286,13 +460,21 @@ const sound4 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn4.src = "images/play4.png";
+    playPauseBtn4.src = "images/play1.png";
     volumeSlider4.classList.add("hidden");
     soundManager.activeSounds.delete("sound4");
+    soundManager.removeFromSidebar("sound4");
+    soundManager.updateActiveCount();
   },
 });
 
-soundManager.registerSound("sound4", sound4, playPauseBtn4, volumeSlider4);
+soundManager.registerSound(
+  "sound4",
+  sound4,
+  playPauseBtn4,
+  volumeSlider4,
+  "White Noise"
+);
 
 playPauseBtn4.addEventListener("click", function () {
   if (sound4.playing()) {
@@ -307,7 +489,7 @@ volumeSlider4.addEventListener("input", function () {
 });
 
 // -------------------------
-// Sound 5 (Example - Pink Noise)
+// Sound 5 (Pink Noise)
 // -------------------------
 const playPauseBtn5 = document.getElementById("playBtn5");
 const volumeSlider5 = document.getElementById("volumeSlider5");
@@ -317,13 +499,21 @@ const sound5 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn5.src = "images/play5.png";
+    playPauseBtn5.src = "images/play2.png";
     volumeSlider5.classList.add("hidden");
     soundManager.activeSounds.delete("sound5");
+    soundManager.removeFromSidebar("sound5");
+    soundManager.updateActiveCount();
   },
 });
 
-soundManager.registerSound("sound5", sound5, playPauseBtn5, volumeSlider5);
+soundManager.registerSound(
+  "sound5",
+  sound5,
+  playPauseBtn5,
+  volumeSlider5,
+  "Pink Noise"
+);
 
 playPauseBtn5.addEventListener("click", function () {
   if (sound5.playing()) {
@@ -336,4 +526,217 @@ playPauseBtn5.addEventListener("click", function () {
 volumeSlider5.addEventListener("input", function () {
   soundManager.setVolume("sound5", volumeSlider5.value);
 });
+
+// -------------------------
+// Sound 6 (Brown Noise)
+// -------------------------
+const playPauseBtn6 = document.getElementById("playBtn6");
+const volumeSlider6 = document.getElementById("volumeSlider6");
+
+const sound6 = new Howl({
+  src: ["nogap_sounds/brown-noise.ogg"],
+  loop: false,
+  html5: true,
+  onend: function () {
+    playPauseBtn6.src = "images/play3.png";
+    volumeSlider6.classList.add("hidden");
+    soundManager.activeSounds.delete("sound6");
+    soundManager.removeFromSidebar("sound6");
+    soundManager.updateActiveCount();
+  },
+});
+
+soundManager.registerSound(
+  "sound6",
+  sound6,
+  playPauseBtn6,
+  volumeSlider6,
+  "Brown Noise"
+);
+
+playPauseBtn6.addEventListener("click", function () {
+  if (sound6.playing()) {
+    soundManager.stopSound("sound6");
+  } else {
+    soundManager.playSound("sound6");
+  }
+});
+
+volumeSlider6.addEventListener("input", function () {
+  soundManager.setVolume("sound6", volumeSlider6.value);
+});
+
+// -------------------------
+// Sound 7 (DJ Beat 1)
+// -------------------------
+const playPauseBtn7 = document.getElementById("playBtn7");
+const volumeSlider7 = document.getElementById("volumeSlider7");
+
+const sound7 = new Howl({
+  src: ["nogap_sounds/dj-beat1.mp3"],
+  loop: false,
+  html5: true,
+  onend: function () {
+    playPauseBtn7.src = "images/play1.png";
+    volumeSlider7.classList.add("hidden");
+    soundManager.activeSounds.delete("sound7");
+    soundManager.removeFromSidebar("sound7");
+    soundManager.updateActiveCount();
+  },
+});
+
+soundManager.registerSound(
+  "sound7",
+  sound7,
+  playPauseBtn7,
+  volumeSlider7,
+  "DJ Beat 1"
+);
+
+playPauseBtn7.addEventListener("click", function () {
+  if (sound7.playing()) {
+    soundManager.stopSound("sound7");
+  } else {
+    soundManager.playSound("sound7");
+  }
+});
+
+volumeSlider7.addEventListener("input", function () {
+  soundManager.setVolume("sound7", volumeSlider7.value);
+});
+
+// -------------------------
+// Sound 8 (DJ Beat 2)
+// -------------------------
+const playPauseBtn8 = document.getElementById("playBtn8");
+const volumeSlider8 = document.getElementById("volumeSlider8");
+
+const sound8 = new Howl({
+  src: ["nogap_sounds/dj-beat2.mp3"],
+  loop: false,
+  html5: true,
+  onend: function () {
+    playPauseBtn8.src = "images/play2.png";
+    volumeSlider8.classList.add("hidden");
+    soundManager.activeSounds.delete("sound8");
+    soundManager.removeFromSidebar("sound8");
+    soundManager.updateActiveCount();
+  },
+});
+
+soundManager.registerSound(
+  "sound8",
+  sound8,
+  playPauseBtn8,
+  volumeSlider8,
+  "DJ Beat 2"
+);
+
+playPauseBtn8.addEventListener("click", function () {
+  if (sound8.playing()) {
+    soundManager.stopSound("sound8");
+  } else {
+    soundManager.playSound("sound8");
+  }
+});
+
+volumeSlider8.addEventListener("input", function () {
+  soundManager.setVolume("sound8", volumeSlider8.value);
+});
+
+// -------------------------
+// Sound 9 (DJ Beat 3)
+// -------------------------
+const playPauseBtn9 = document.getElementById("playBtn9");
+const volumeSlider9 = document.getElementById("volumeSlider9");
+
+const sound9 = new Howl({
+  src: ["nogap_sounds/dj-beat3.mp3"],
+  loop: false,
+  html5: true,
+  onend: function () {
+    playPauseBtn9.src = "images/play3.png";
+    volumeSlider9.classList.add("hidden");
+    soundManager.activeSounds.delete("sound9");
+    soundManager.removeFromSidebar("sound9");
+    soundManager.updateActiveCount();
+  },
+});
+
+soundManager.registerSound(
+  "sound9",
+  sound9,
+  playPauseBtn9,
+  volumeSlider9,
+  "DJ Beat 3"
+);
+
+playPauseBtn9.addEventListener("click", function () {
+  if (sound9.playing()) {
+    soundManager.stopSound("sound9");
+  } else {
+    soundManager.playSound("sound9");
+  }
+});
+
+volumeSlider9.addEventListener("input", function () {
+  soundManager.setVolume("sound9", volumeSlider9.value);
+});
+
+// -------------------------
+// Stop All Sounds Button
+// -------------------------
+const stopAllBtn = document.getElementById("stopAllBtn");
+
+stopAllBtn.addEventListener("click", function () {
+  console.log("Stop All Sounds button clicked.");
+  soundManager.stopAllSounds();
+  soundManager.stopAllSeamlessLoops();
+});
+
+// ========================================
+// SCALABLE TEMPLATE FOR ADDING MORE SOUNDS
+// ========================================
+/*
+To add more sounds, just copy this template and modify:
+
+// -------------------------
+// Sound X (Your Sound Name)
+// -------------------------
+const playPauseBtnX = document.getElementById("playBtnX");
+const volumeSliderX = document.getElementById("volumeSliderX");
+
+const soundX = new Howl({
+  src: ["nogap_sounds/your-sound-file.mp3"],
+  loop: false,
+  html5: true,
+  onend: function () {
+    playPauseBtnX.src = "images/play1.png"; // or play2.png, play3.png
+    volumeSliderX.classList.add("hidden");
+    soundManager.activeSounds.delete("soundX");
+    soundManager.removeFromSidebar("soundX");
+    soundManager.updateActiveCount();
+  },
+});
+
+soundManager.registerSound("soundX", soundX, playPauseBtnX, volumeSliderX, "Your Sound Name");
+
+playPauseBtnX.addEventListener("click", function () {
+  if (soundX.playing()) {
+    soundManager.stopSound("soundX");
+  } else {
+    soundManager.playSound("soundX");
+  }
+});
+
+volumeSliderX.addEventListener("input", function () {
+  soundManager.setVolume("soundX", volumeSliderX.value);
+});
+
+Don't forget to add the HTML controls in index.html:
+<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+  <p class="text-sm font-semibold mb-2 text-blue-300">Your Sound Name</p>
+  <img id="playBtnX" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity" src="images/play1.png" alt="play-stop btn">
+  <input type="range" id="volumeSliderX" class="hidden w-full mt-2" min="0" max="1" step="0.1" value="1">
+</div>
 */

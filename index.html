@@ -13,33 +13,130 @@
 	<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-	<div class="flex-container">
-		<div class="audio-controls">
-			<p>Bullet</p>
-			<img id="playBtn1" class="playButton" src="images/play1.png" alt="play-stop btn">
-			<!-- Play / Pause Button -->
-			<input type="range" id="volumeSlider1" class="hidden" min="0" max="1" step="0.1" value="1">
-			<!-- Volume Slider -->
+<body class="bg-gray-900 text-white">
+	<div class="flex h-screen">
+		<!-- Main Content Area -->
+		<div class="flex-1 p-6 overflow-y-auto">
+			<h1 class="text-3xl font-bold mb-8 text-center text-blue-400">Sound Library</h1>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">Bullet</p>
+					<img id="playBtn1" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play1.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider1" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">Charge</p>
+					<img id="playBtn2" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play2.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider2" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">Seemless noise</p>
+					<img id="playBtn3" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play3.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider3" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">White Noise</p>
+					<img id="playBtn4" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play1.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider4" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">Pink Noise</p>
+					<img id="playBtn5" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play2.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider5" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">Brown Noise</p>
+					<img id="playBtn6" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play3.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider6" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">DJ Beat 1</p>
+					<img id="playBtn7" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play1.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider7" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">DJ Beat 2</p>
+					<img id="playBtn8" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play2.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider8" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+
+				<div class="audio-controls bg-gray-800 p-4 rounded-lg border border-gray-700">
+					<p class="text-sm font-semibold mb-2 text-blue-300">DJ Beat 3</p>
+					<img id="playBtn9" class="playButton w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
+						src="images/play3.png" alt="play-stop btn">
+					<input type="range" id="volumeSlider9" class="hidden w-full mt-2" min="0" max="1" step="0.1"
+						value="1">
+				</div>
+			</div>
+
+			<div class="mt-8 text-center">
+				<button id="stopAllBtn"
+					class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+					🛑 Stop All Sounds
+				</button>
+			</div>
 		</div>
 
-		<div class="audio-controls">
-			<p>Charge</p>
-			<img id="playBtn2" class="playButton" src="images/play2.png" alt="play-stop btn">
-			<input type="range" id="volumeSlider2" class="hidden" min="0" max="1" step="0.1" value="1">
-		</div>
+		<!-- DJ Sidebar -->
+		<div id="djSidebar" class="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+			<!-- Sidebar Header -->
+			<div class="p-4 border-b border-gray-700 bg-gray-900">
+				<h2 class="text-xl font-bold text-blue-400 flex items-center">
+					🎧 DJ Mixer
+					<span id="activeCount" class="ml-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">0</span>
+				</h2>
+				<p class="text-sm text-gray-400 mt-1">Currently Playing</p>
+			</div>
 
-		<div class="audio-controls">
-			<p>Seemless noise</p>
-			<img id="playBtn3" class="playButton" src="images/play3.png" alt="play-stop btn">
-			<input type="range" id="volumeSlider3" class="hidden" min="0" max="1" step="0.1" value="1">
+			<!-- Active Tracks Container -->
+			<div id="activeTracks" class="flex-1 overflow-y-auto p-4 space-y-3">
+				<!-- Active tracks will be dynamically added here -->
+				<div class="text-center text-gray-500 py-8">
+					<p>No sounds playing</p>
+					<p class="text-sm">Start playing sounds to see them here</p>
+				</div>
+			</div>
+
+			<!-- Sidebar Footer -->
+			<div class="p-4 border-t border-gray-700 bg-gray-900">
+				<div class="flex justify-between items-center">
+					<button id="clearAllBtn"
+						class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-3 py-2 rounded transition-colors">
+						Clear All
+					</button>
+					<span class="text-xs text-gray-400">
+						<span id="totalSounds">0</span> sounds loaded
+					</span>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<div class="stopbutton">Stop All Sounds</div>
 	<script type="text/javascript" src="js/howler-v2.2.4.min.js"></script>
-
-	<!-- All Howl instances grouped here please -->
 	<script type="text/javascript" src="js/SeamlessLoop.js"></script>
 	<script type="text/javascript" src="js/howler-instances.js"></script>
 
