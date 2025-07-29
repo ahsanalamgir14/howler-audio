@@ -10,8 +10,6 @@ const volumeSlider1 = document.getElementById("volumeSlider1");
 const playPauseBtn2 = document.getElementById("playBtn2");
 const volumeSlider2 = document.getElementById("volumeSlider2");
 
-const playAllBtn = document.getElementById("playAllBtn");
-
 // -------------------------
 // Sound 1 (Bullet - Notification Sound)
 // -------------------------
@@ -210,59 +208,5 @@ stopButton.addEventListener("click", function () {
         loop.volume(current);
       }
     }, interval);
-  }
-
-  if (isDynamicPlaying) {
-    pauseCurrentSound();
-    console.log("Dynamic sounds stopped.");
-  }
-});
-
-// Sound file names
-const dynamicSounds = [];
-for (let i = 1; i <= 3; i++) {
-  dynamicSounds.push(`nogap_sounds/dj-beat${i}.mp3`);
-}
-
-let isDynamicPlaying = false;
-let currentIndex = 0;
-let currentHowl = null;
-
-function playSoundsInSequence(index = 0) {
-  if (index >= dynamicSounds.length) {
-    isDynamicPlaying = false;
-    playAllBtn.innerText = "▶️ Play All Sounds";
-    return;
-  }
-
-  currentHowl = new Howl({
-    src: [dynamicSounds[index]],
-    html5: true,
-    onend: function () {
-      if (isDynamicPlaying) {
-        playSoundsInSequence(index + 1);
-      }
-    },
-  });
-
-  currentHowl.play();
-  currentIndex = index;
-  isDynamicPlaying = true;
-  playAllBtn.innerText = "⏸️ Pause";
-}
-
-function pauseCurrentSound() {
-  if (currentHowl && currentHowl.playing()) {
-    currentHowl.stop(); // Stops and unloads current sound
-  }
-  isDynamicPlaying = false;
-  playAllBtn.innerText = "▶️ Play All Sounds";
-}
-
-playAllBtn.addEventListener("click", function () {
-  if (!isDynamicPlaying) {
-    playSoundsInSequence(currentIndex);
-  } else {
-    pauseCurrentSound();
   }
 });
