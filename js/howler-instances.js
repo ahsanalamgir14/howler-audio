@@ -13,11 +13,11 @@ const volumeSlider2 = document.getElementById("volumeSlider2");
 const playAllBtn = document.getElementById("playAllBtn");
 
 // -------------------------
-// Sound 1
+// Sound 1 (Bullet - Notification Sound)
 // -------------------------
 let sound1Id = null;
 const sound1 = new Howl({
-  src: ["nogap_sounds/sound1.ogg"],
+  src: ["nogap_sounds/dj-single.mp3"],
   loop: false,
   html5: true,
   onend: function () {
@@ -28,18 +28,8 @@ const sound1 = new Howl({
 });
 
 playPauseBtn1.addEventListener("click", function () {
-  if (sound1.playing()) {
-    if (sound1Id !== null) {
-      sound1.fade(sound1.volume(sound1Id), 0, fadeDuration, sound1Id);
-      playPauseBtn1.src = "images/play1.png";
-      volumeSlider1.classList.add("hidden"); // Hide slider
-      setTimeout(() => {
-        sound1.stop(sound1Id);
-        sound1.volume(volumeSlider1.value, sound1Id);
-        sound1Id = null;
-      }, fadeDuration);
-    }
-  } else {
+  // Only allow playing if not currently playing
+  if (!sound1.playing()) {
     sound1Id = sound1.play();
     sound1.volume(0, sound1Id);
     sound1.once("play", () => {
@@ -48,6 +38,7 @@ playPauseBtn1.addEventListener("click", function () {
     playPauseBtn1.src = "images/stop.png";
     volumeSlider1.classList.remove("hidden"); // Show slider
   }
+  // If already playing, do nothing - button is disabled until sound ends
 });
 
 volumeSlider1.addEventListener("input", function () {
@@ -57,7 +48,7 @@ volumeSlider1.addEventListener("input", function () {
 });
 
 // -------------------------
-// Sound 2
+// Sound 2 (Charge)
 // -------------------------
 let sound2Id = null;
 const sound2 = new Howl({
@@ -100,6 +91,9 @@ volumeSlider2.addEventListener("input", function () {
   }
 });
 
+// -------------------------
+// Sound 3 (Seamless Loop)
+// -------------------------
 const loop = new SeamlessLoop();
 loop.addUri("nogap_sounds/sound3.ogg", sound3Duration, "sound3");
 
@@ -271,16 +265,4 @@ playAllBtn.addEventListener("click", function () {
   } else {
     pauseCurrentSound();
   }
-});
-
-const playNotificationBtn = document.getElementById("playNotificationBtn");
-
-// You can replace with any other sound file path you want
-const notificationSound = new Howl({
-  src: ["nogap_sounds/dj-single.mp3"],
-  html5: true,
-});
-
-playNotificationBtn.addEventListener("click", () => {
-  notificationSound.play();
 });
