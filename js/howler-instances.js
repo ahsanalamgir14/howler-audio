@@ -369,6 +369,9 @@ class SoundManager {
   // Force update all button states - ensures consistency
   updateAllButtonStates() {
     this.sounds.forEach((sound, id) => {
+      // Skip bullet sound (sound1) as it's non-stoppable and manages its own state
+      if (id === "sound1") return;
+
       const isPlaying = sound.isLoop ? sound.isPlaying : sound.soundId !== null;
       const playImageNumber = id.replace("sound", "");
 
@@ -404,6 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     soundManager.sounds.forEach((sound, id) => {
       if (!sound.isLoop) {
+        // Skip bullet sound (sound1) as it's non-stoppable
+        if (id === "sound1") return;
+
         // For regular sounds, check if they're still playing
         if (sound.soundId && !sound.howl.playing()) {
           // Sound has ended but onend wasn't called, fix the state
@@ -480,11 +486,17 @@ const sound2 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
+    // Ensure button state is updated
     soundManager.setButtonImage(playPauseBtn2, "images/play2.png");
     volumeSlider2.classList.add("hidden");
     soundManager.activeSounds.delete("sound2");
     soundManager.removeFromSidebar("sound2");
     soundManager.updateActiveCount();
+
+    // Force update button state after a short delay to ensure consistency
+    setTimeout(() => {
+      soundManager.updateAllButtonStates();
+    }, 100);
   },
 });
 
