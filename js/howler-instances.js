@@ -17,13 +17,9 @@ class SoundManager {
     this.activeTracksContainer = document.getElementById("activeTracks");
     this.activeCountElement = document.getElementById("activeCount");
     this.totalSoundsElement = document.getElementById("totalSounds");
-    this.clearAllBtn = document.getElementById("clearAllBtn");
 
-    // Add event listeners
-    this.clearAllBtn.addEventListener("click", () => {
-      this.stopAllSounds();
-      this.stopAllSeamlessLoops();
-    });
+    // Start monitoring button states to ensure consistency
+    this.startButtonStateMonitor();
   }
 
   // Register a sound with its controls and name
@@ -56,7 +52,9 @@ class SoundManager {
     sound.howl.once("play", () => {
       sound.howl.fade(0, sound.volumeSlider.value, fadeDuration, sound.soundId);
     });
-    sound.playButton.src = "images/stop.png";
+
+    // Preload and set stop image
+    this.setButtonImage(sound.playButton, "images/stop.png");
     sound.volumeSlider.classList.remove("hidden");
     this.activeSounds.set(id, sound.soundId);
 
@@ -76,9 +74,10 @@ class SoundManager {
       fadeDuration,
       sound.soundId
     );
+
     // Restore the original play button image based on the sound ID
     const playImageNumber = id.replace("sound", "");
-    sound.playButton.src = `images/play${playImageNumber}.png`;
+    this.setButtonImage(sound.playButton, `images/play${playImageNumber}.png`);
     sound.volumeSlider.classList.add("hidden");
 
     setTimeout(() => {
@@ -102,7 +101,10 @@ class SoundManager {
         sound.howl.fade(sound.howl.volume(soundId), 0, fadeDuration, soundId);
         // Restore the original play button image based on the sound ID
         const playImageNumber = soundKey.replace("sound", "");
-        sound.playButton.src = `images/play${playImageNumber}.png`;
+        this.setButtonImage(
+          sound.playButton,
+          `images/play${playImageNumber}.png`
+        );
         sound.volumeSlider.classList.add("hidden");
 
         setTimeout(() => {
@@ -145,7 +147,7 @@ class SoundManager {
 
     sound.loop.start("sound3");
     sound.isPlaying = true;
-    sound.playButton.src = "images/stop.png";
+    this.setButtonImage(sound.playButton, "images/stop.png");
     sound.volumeSlider.classList.remove("hidden");
 
     // Add to sidebar
@@ -190,7 +192,10 @@ class SoundManager {
         sound.loop.stop();
         // Restore the original play button image based on the sound ID
         const playImageNumber = id.replace("sound", "");
-        sound.playButton.src = `images/play${playImageNumber}.png`;
+        this.setButtonImage(
+          sound.playButton,
+          `images/play${playImageNumber}.png`
+        );
         sound.volumeSlider.classList.add("hidden");
         sound.isPlaying = false;
         console.log(`${id} (SeamlessLoop) faded and stopped.`);
@@ -335,10 +340,86 @@ class SoundManager {
   updateTotalSounds() {
     this.totalSoundsElement.textContent = this.sounds.size;
   }
+
+  // Set button image with preloading to prevent broken images
+  setButtonImage(button, imagePath) {
+    // Create a new image element to preload
+    const img = new Image();
+
+    img.onload = () => {
+      // Only set the src when the image is fully loaded
+      button.src = imagePath;
+    };
+
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${imagePath}`);
+      // Fallback to stop.png if play image fails, or keep current if stop fails
+      if (imagePath.includes("stop.png")) {
+        button.src = "images/stop.png"; // Try again with stop image
+      }
+    };
+
+    // Start loading the image
+    img.src = imagePath;
+  }
+
+  // Force update all button states - ensures consistency
+  updateAllButtonStates() {
+    this.sounds.forEach((sound, id) => {
+      const isPlaying = sound.isLoop ? sound.isPlaying : sound.soundId !== null;
+      const playImageNumber = id.replace("sound", "");
+
+      if (!isPlaying) {
+        // Sound is not playing, ensure it shows play button
+        this.setButtonImage(
+          sound.playButton,
+          `images/play${playImageNumber}.png`
+        );
+        sound.volumeSlider.classList.add("hidden");
+      } else {
+        // Sound is playing, ensure it shows stop button
+        this.setButtonImage(sound.playButton, "images/stop.png");
+        sound.volumeSlider.classList.remove("hidden");
+      }
+    });
+  }
+
+  // Check and fix button states periodically
+  startButtonStateMonitor() {
+    setInterval(() => {
+      this.updateAllButtonStates();
+    }, 2000); // Check every 2 seconds
+  }
 }
 
 // Initialize sound manager
 const soundManager = new SoundManager();
+
+// Global sound completion handler to catch any missed events
+document.addEventListener("DOMContentLoaded", () => {
+  // Add a global handler for any sound completion
+  setInterval(() => {
+    soundManager.sounds.forEach((sound, id) => {
+      if (!sound.isLoop) {
+        // For regular sounds, check if they're still playing
+        if (sound.soundId && !sound.howl.playing()) {
+          // Sound has ended but onend wasn't called, fix the state
+          sound.soundId = null;
+          soundManager.activeSounds.delete(id);
+          soundManager.removeFromSidebar(id);
+          soundManager.updateActiveCount();
+
+          const playImageNumber = id.replace("sound", "");
+          soundManager.setButtonImage(
+            sound.playButton,
+            `images/play${playImageNumber}.png`
+          );
+          sound.volumeSlider.classList.add("hidden");
+        }
+      }
+    });
+  }, 1000); // Check every second
+});
 
 // -------------------------
 // Sound 1 (Bullet - Notification Sound)
@@ -351,11 +432,17 @@ const sound1 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn1.src = "images/play1.png";
+    // Ensure button state is updated
+    soundManager.setButtonImage(playPauseBtn1, "images/play1.png");
     volumeSlider1.classList.add("hidden");
     soundManager.activeSounds.delete("sound1");
     soundManager.removeFromSidebar("sound1");
     soundManager.updateActiveCount();
+
+    // Force update button state after a short delay to ensure consistency
+    setTimeout(() => {
+      soundManager.updateAllButtonStates();
+    }, 100);
   },
 });
 
@@ -388,7 +475,7 @@ const sound2 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn2.src = "images/play2.png";
+    soundManager.setButtonImage(playPauseBtn2, "images/play2.png");
     volumeSlider2.classList.add("hidden");
     soundManager.activeSounds.delete("sound2");
     soundManager.removeFromSidebar("sound2");
@@ -460,7 +547,7 @@ const sound4 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn4.src = "images/play1.png";
+    soundManager.setButtonImage(playPauseBtn4, "images/play1.png");
     volumeSlider4.classList.add("hidden");
     soundManager.activeSounds.delete("sound4");
     soundManager.removeFromSidebar("sound4");
@@ -499,7 +586,7 @@ const sound5 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn5.src = "images/play2.png";
+    soundManager.setButtonImage(playPauseBtn5, "images/play2.png");
     volumeSlider5.classList.add("hidden");
     soundManager.activeSounds.delete("sound5");
     soundManager.removeFromSidebar("sound5");
@@ -538,7 +625,7 @@ const sound6 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn6.src = "images/play3.png";
+    soundManager.setButtonImage(playPauseBtn6, "images/play3.png");
     volumeSlider6.classList.add("hidden");
     soundManager.activeSounds.delete("sound6");
     soundManager.removeFromSidebar("sound6");
@@ -577,7 +664,7 @@ const sound7 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn7.src = "images/play1.png";
+    soundManager.setButtonImage(playPauseBtn7, "images/play1.png");
     volumeSlider7.classList.add("hidden");
     soundManager.activeSounds.delete("sound7");
     soundManager.removeFromSidebar("sound7");
@@ -616,7 +703,7 @@ const sound8 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn8.src = "images/play2.png";
+    soundManager.setButtonImage(playPauseBtn8, "images/play2.png");
     volumeSlider8.classList.add("hidden");
     soundManager.activeSounds.delete("sound8");
     soundManager.removeFromSidebar("sound8");
@@ -655,7 +742,7 @@ const sound9 = new Howl({
   loop: false,
   html5: true,
   onend: function () {
-    playPauseBtn9.src = "images/play3.png";
+    soundManager.setButtonImage(playPauseBtn9, "images/play3.png");
     volumeSlider9.classList.add("hidden");
     soundManager.activeSounds.delete("sound9");
     soundManager.removeFromSidebar("sound9");
