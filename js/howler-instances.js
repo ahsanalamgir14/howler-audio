@@ -637,7 +637,7 @@ class SimpleSeamlessLoader {
         if (response.ok) {
           foundFiles.push(fileName);
           console.log(`✅ Found file: ${fileName}`);
-        } else {
+      } else {
           console.log(`❌ File not found (${response.status}): ${fileName}`);
         }
       } catch (error) {
@@ -848,8 +848,8 @@ class SimpleSeamlessLoader {
     const soundData = this.seamlessSounds.get(id);
     if (!soundData) {
       console.error(`Sound data not found for: ${id}`);
-      return;
-    }
+    return;
+  }
 
     console.log(`Sound data found:`, soundData);
 
@@ -858,7 +858,7 @@ class SimpleSeamlessLoader {
       console.log(`Creating Howl instance for: ${soundData.filePath}`);
       soundData.howlInstance = new Howl({
         src: [soundData.filePath],
-        html5: true,
+    html5: true,
         loop: true,
         onload: () => {
           console.log(`✅ Seamless sound loaded: ${soundData.name}`);
@@ -874,8 +874,8 @@ class SimpleSeamlessLoader {
         },
         onstop: () => {
           console.log(`⏹️ Stopped playing: ${soundData.name}`);
-        },
-      });
+    },
+  });
     }
 
     const howl = soundData.howlInstance;
