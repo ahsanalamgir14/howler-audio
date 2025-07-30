@@ -335,7 +335,12 @@ class SoundManager {
     const count =
       this.activeSounds.size +
       Array.from(this.sounds.values()).filter((s) => s.isLoop && s.isPlaying)
-        .length;
+        .length +
+      (simpleSeamlessLoader
+        ? Array.from(simpleSeamlessLoader.seamlessSounds.values()).filter(
+            (s) => s.isPlaying
+          ).length
+        : 0);
     this.activeCountElement.textContent = count;
   }
 
@@ -922,6 +927,15 @@ class SimpleSeamlessLoader {
     if (howl && soundId) {
       howl.volume(volume, soundId);
     }
+
+    // Update the volume display
+    const trackElement = document.getElementById(`sidebar-track-${id}`);
+    if (trackElement) {
+      const volumeDisplay = trackElement.querySelector(".text-gray-400");
+      if (volumeDisplay) {
+        volumeDisplay.textContent = `${Math.round(volume * 100)}%`;
+      }
+    }
   }
 
   // Add seamless sound to sidebar
@@ -938,47 +952,52 @@ class SimpleSeamlessLoader {
       noSoundsMsg.remove();
     }
 
-    // Create sidebar item
-    const sidebarItem = document.createElement("div");
-    sidebarItem.className =
-      "flex items-center justify-between p-3 bg-gray-700 rounded mb-2";
-    sidebarItem.dataset.soundId = id;
+    // Check if track is already in sidebar
+    const existingTrack = document.getElementById(`sidebar-track-${id}`);
+    if (existingTrack) return;
 
-    sidebarItem.innerHTML = `
-      <div class="flex-1">
-        <p class="text-sm font-medium text-white">${soundData.name}</p>
+    // Create track element
+    const trackElement = document.createElement("div");
+    trackElement.id = `sidebar-track-${id}`;
+    trackElement.className =
+      "bg-gray-700 rounded-lg p-3 border border-gray-600";
+
+    trackElement.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+          <span class="text-sm font-medium text-white">${soundData.name}</span>
+        </div>
+        <button onclick="simpleSeamlessLoader.stopSeamlessSound('${id}')" class="text-red-400 hover:text-red-300 text-sm">
+          ✕
+        </button>
       </div>
       <div class="flex items-center space-x-2">
-        <input type="range" class="w-20" min="0" max="1" step="0.1" value="${soundData.volume}">
-        <button class="text-red-400 hover:text-red-300 text-sm">✕</button>
+        <input type="range" 
+               min="0" max="1" step="0.1" 
+               value="${soundData.volume}"
+               onchange="simpleSeamlessLoader.setSeamlessVolume('${id}', this.value)"
+               class="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider">
+        <span class="text-xs text-gray-400 w-8">${Math.round(
+          soundData.volume * 100
+        )}%</span>
       </div>
     `;
 
-    // Add event listeners
-    const stopBtn = sidebarItem.querySelector("button");
-    const volumeSlider = sidebarItem.querySelector('input[type="range"]');
-
-    stopBtn.addEventListener("click", () => this.stopSeamlessSound(id));
-    volumeSlider.addEventListener("input", (e) =>
-      this.setSeamlessVolume(id, e.target.value)
-    );
-
-    sidebar.appendChild(sidebarItem);
+    sidebar.appendChild(trackElement);
     this.updateActiveCount();
   }
 
   // Remove seamless sound from sidebar
   removeSeamlessFromSidebar(id) {
-    const sidebar = document.getElementById("activeTracks");
-    if (!sidebar) return;
-
-    const item = sidebar.querySelector(`[data-sound-id="${id}"]`);
-    if (item) {
-      item.remove();
+    const trackElement = document.getElementById(`sidebar-track-${id}`);
+    if (trackElement) {
+      trackElement.remove();
     }
 
-    // Show "no sounds" message if sidebar is empty
-    if (sidebar.children.length === 0) {
+    // Show "no sounds playing" message if no tracks left
+    const sidebar = document.getElementById("activeTracks");
+    if (sidebar && sidebar.children.length === 0) {
       sidebar.innerHTML = `
         <div class="text-center text-gray-500 py-8">
           <p>No sounds playing</p>
@@ -990,16 +1009,9 @@ class SimpleSeamlessLoader {
     this.updateActiveCount();
   }
 
-  // Update active count
+  // Update active count - use main sound manager's method
   updateActiveCount() {
-    const activeCount = document.getElementById("activeCount");
-    if (activeCount) {
-      const playingSeamless = Array.from(this.seamlessSounds.values()).filter(
-        (s) => s.isPlaying
-      ).length;
-      const existingActive = soundManager.activeSounds.size;
-      activeCount.textContent = existingActive + playingSeamless;
-    }
+    soundManager.updateActiveCount();
   }
 
   // Set button image (reuse existing method)
