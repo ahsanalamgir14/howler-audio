@@ -637,7 +637,7 @@ class SimpleSeamlessLoader {
         if (response.ok) {
           foundFiles.push(fileName);
           console.log(`✅ Found file: ${fileName}`);
-      } else {
+        } else {
           console.log(`❌ File not found (${response.status}): ${fileName}`);
         }
       } catch (error) {
@@ -753,29 +753,6 @@ class SimpleSeamlessLoader {
 
     console.log("Found controls container:", existingControls);
 
-    // Add reload button to the header
-    const header = seamlessColumn.querySelector(".text-center.mb-6");
-    if (header && !header.querySelector("#reloadSeamlessBtn")) {
-      const reloadBtn = document.createElement("button");
-      reloadBtn.id = "reloadSeamlessBtn";
-      reloadBtn.className =
-        "bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded transition-colors ml-4";
-      reloadBtn.textContent = "🔄 Reload";
-      reloadBtn.addEventListener("click", () => {
-        // Clear existing dynamic sounds
-        const dynamicSounds = existingControls.querySelectorAll(
-          '[data-sound-id^="seamless_"]'
-        );
-        dynamicSounds.forEach((sound) => sound.remove());
-
-        // Reload sounds
-        this.seamlessSounds.clear();
-        this.loadSeamlessSoundsFromFolder();
-      });
-
-      header.appendChild(reloadBtn);
-    }
-
     console.log(`Adding ${this.seamlessSounds.size} seamless sounds to column`);
 
     // Add additional seamless sounds
@@ -848,8 +825,8 @@ class SimpleSeamlessLoader {
     const soundData = this.seamlessSounds.get(id);
     if (!soundData) {
       console.error(`Sound data not found for: ${id}`);
-    return;
-  }
+      return;
+    }
 
     console.log(`Sound data found:`, soundData);
 
@@ -858,7 +835,7 @@ class SimpleSeamlessLoader {
       console.log(`Creating Howl instance for: ${soundData.filePath}`);
       soundData.howlInstance = new Howl({
         src: [soundData.filePath],
-    html5: true,
+        html5: true,
         loop: true,
         onload: () => {
           console.log(`✅ Seamless sound loaded: ${soundData.name}`);
@@ -874,8 +851,8 @@ class SimpleSeamlessLoader {
         },
         onstop: () => {
           console.log(`⏹️ Stopped playing: ${soundData.name}`);
-    },
-  });
+        },
+      });
     }
 
     const howl = soundData.howlInstance;
@@ -970,7 +947,6 @@ class SimpleSeamlessLoader {
     sidebarItem.innerHTML = `
       <div class="flex-1">
         <p class="text-sm font-medium text-white">${soundData.name}</p>
-        <p class="text-xs text-green-400">🔄 Seamless</p>
       </div>
       <div class="flex items-center space-x-2">
         <input type="range" class="w-20" min="0" max="1" step="0.1" value="${soundData.volume}">
